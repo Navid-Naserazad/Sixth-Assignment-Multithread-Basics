@@ -21,17 +21,17 @@ public class UseInterrupts
  */
     public static class SleepThread extends Thread {
         int sleepCounter;
-
+        boolean interrupted;
         public SleepThread(int sleepCounter) {
             super();
             this.sleepCounter = sleepCounter;
+            this.interrupted = false;
         }
 
         @Override
         public void run() {
             System.out.println(this.getName() + " is Active.");
-
-            while (this.sleepCounter > 0)
+            while (this.sleepCounter > 0  && !Thread.currentThread().isInterrupted())
             {
                 try {
                     Thread.sleep(1000);
@@ -43,7 +43,13 @@ public class UseInterrupts
                     System.out.println("Number of sleeps remaining: " + this.sleepCounter);
                 }
             }
-
+            System.out.println("{"+ Thread.currentThread().getName() + "}"+" has been interrupted");
+        }
+        public void interrupt() {
+            this.interrupted = true;
+        }
+        public boolean isInterrupted() {
+            return this.interrupted;
         }
     }
 
@@ -57,9 +63,12 @@ public class UseInterrupts
  */
     public static class LoopThread extends Thread {
         int value;
+        boolean interrupted;
+
         public LoopThread(int value) {
             super();
             this.value = value;
+            this.interrupted = false;
         }
 
         @Override
@@ -69,10 +78,20 @@ public class UseInterrupts
             for (int i = 0; i < 10; i += 3)
             {
                 i -= this.value;
-
+                if (Thread.currentThread().isInterrupted()) {
+                    break;
+                }
             }
+            System.out.println("{"+ Thread.currentThread().getName() + "}"+" has been interrupted");
+        }
+        public void interrupt() {
+            this.interrupted = true;
+        }
+        public boolean isInterrupted() {
+            return this.interrupted;
         }
     }
+
 
 /*
     You can add new code to the main function. This is where you must utilize interrupts.
@@ -81,13 +100,20 @@ public class UseInterrupts
     public static void main(String[] args) {
         SleepThread sleepThread = new SleepThread(5);
         sleepThread.start();
-
-        // TODO  Check if this thread runs for longer than 3 seconds (if it does, interrupt it)
+        long startSleepThread = System.currentTimeMillis();
+        while (sleepThread.isAlive()) {
+            if (System.currentTimeMillis() - startSleepThread > 3000) {
+                sleepThread.interrupt();
+            }
+        }
 
         LoopThread loopThread = new LoopThread(3);
         loopThread.start();
-
-        // TODO  Check if this thread runs for longer than 3 seconds (if it does, interrupt it)
-
+        long startLoopThread = System.currentTimeMillis();
+        while (!loopThread.isAlive()) {
+            if (System.currentTimeMillis() - startLoopThread > 3000) {
+                loopThread.interrupt();
+            }
+        }
     }
 }

@@ -23,7 +23,8 @@ public class CPU_Simulator
         long processingTime;
         String ID;
         public Task(String ID, long processingTime) {
-        // TODO
+        this.ID = ID;
+        this.processingTime = processingTime;
         }
 
     /*
@@ -32,7 +33,11 @@ public class CPU_Simulator
     */
         @Override
         public void run() {
-        // TODO
+            try {
+                Thread.sleep(processingTime);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -44,11 +49,36 @@ public class CPU_Simulator
     public ArrayList<String> startSimulation(ArrayList<Task> tasks) {
         ArrayList<String> executedTasks = new ArrayList<>();
 
-        // TODO
+        int loopSize = tasks.size();
+        for (int j=0; j<loopSize; j++)
+        {
+            long minTime = tasks.get(0).processingTime;
+            Task smallTask = tasks.get(0);
+            int index = 0;
+            for (int i=1; i<tasks.size(); i++)
+            {
+                if (tasks.get(i).processingTime < minTime)
+                {
+                    minTime = tasks.get(i).processingTime;
+                    smallTask = tasks.get(i);
+                    index = i;
+                }
+            }
+            tasks.remove(index);
+            Thread myThread = new Thread(smallTask);
+            myThread.start();
+            try {
+                myThread.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            executedTasks.add(smallTask.ID);
+        }
 
         return executedTasks;
     }
 
     public static void main(String[] args) {
+
     }
 }

@@ -1,4 +1,5 @@
 package sbu.cs;
+import java.util.ArrayList;
 
 /*
     In this exercise, you must write a multithreaded program that finds all
@@ -19,10 +20,62 @@ package sbu.cs;
     Use the tests provided in the test folder to ensure your code works correctly.
  */
 
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 public class FindMultiples
 {
+    public static ArrayList<Integer> ans = new ArrayList<>();
 
-    // TODO create the required multithreading class/classes using your preferred method.
+    public static class Task implements Runnable {
+        int n;
+        int number;
+        Lock lock;
+
+        public Task(int n, int number, Lock lock) {
+            this.n = n;
+            this.number = number;
+            this.lock = lock;
+        }
+
+        @Override
+        public void run() {
+           if (n < 3)
+           {
+               lock.lock();
+               ans.add(0);
+               lock.unlock();
+           }
+           else
+           {
+               for (int i=3; i<=this.n; i++)
+               {
+                   if (i % this.number == 0)
+                   {
+                       lock.lock();
+                       ans.add(i);
+                       lock.unlock();
+                   }
+               }
+           }
+
+        }
+    }
+
+    public ArrayList<Integer> uniqueAnswer ()
+    {
+        ArrayList<Integer> uniqueAns = new ArrayList<>();
+        uniqueAns.add(ans.get(0));
+        for (int i=1; i<ans.size(); i++)
+        {
+            if (!uniqueAns.contains(ans.get(i)))
+            {
+                uniqueAns.add(ans.get(i));
+            }
+        }
+
+        return uniqueAns;
+    }
 
 
     /*
@@ -32,7 +85,28 @@ public class FindMultiples
     public int getSum(int n) {
         int sum = 0;
 
-        // TODO
+        ReentrantLock lock = new ReentrantLock();
+        Thread T1 = new Thread(new Task(n , 3, lock));
+        Thread T2 = new Thread(new Task(n , 5, lock));
+        Thread T3 = new Thread(new Task(n , 7, lock));
+
+        T1.start();
+        T2.start();
+        T3.start();
+
+        try {
+            T1.join();
+            T2.join();
+            T3.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        ArrayList<Integer> uniqueAns = uniqueAnswer();
+        for (int i=0; i<uniqueAns.size(); i++)
+        {
+            sum += uniqueAns.get(i);
+        }
 
         return sum;
     }
